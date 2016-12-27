@@ -221,12 +221,12 @@ double gaussian(){
   double  x, y;
 
   while (1) {
-    U = grnd.i32();
+    U = grnd.i32();  //generate a random 32 bit integer
     i = U & 0x0000007F;		/* 7 bit to choose the step */
     sign = U & 0x00000080;	/* 1 bit for the sign */
     j = U>>8;			/* 24 bit for the x-value */
 
-    x = j*wtab[i];
+    x = j*wtab[i]; //i can get integer value from 0 to 127
     if (j < ktab[i])  break;
 
     if (i<127) {

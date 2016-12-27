@@ -40,6 +40,8 @@ namespace ltmp{
          ltmp::internal::micro_cell_size = csize;
          return true;
       }
+
+
       //--------------------------------------------------------------------
       test="laser-spot-size";
       if(word==test){
@@ -50,6 +52,8 @@ namespace ltmp{
          return true;
       }
       //--------------------------------------------------------------------
+
+
       test="penetration-depth";
       if(word==test){
          double pdepth=atof(value.c_str());
@@ -59,6 +63,8 @@ namespace ltmp{
          return true;
       }
       //--------------------------------------------------------------------
+
+
       test="thermal-conductivity";
       if(word==test){
          double tdc=atof(value.c_str());
@@ -68,12 +74,17 @@ namespace ltmp{
          return true;
       }
       //--------------------------------------------------------------------
+
+
       test="output-microcell-data";
       if(word==test){
          ltmp::internal::output_microcell_data = true;
          return true;
       }
       //--------------------------------------------------------------------
+
+
+
       test="temperature-profile";
       if(word==test){
          test="lateral";
@@ -108,6 +119,9 @@ namespace ltmp{
          }
       }
       //--------------------------------------------------------------------
+
+
+
       test="absorption-profile-file";
       if(word==test){
          // Open absorption profile file
@@ -148,6 +162,9 @@ namespace ltmp{
          return true;
       }
       //--------------------------------------------------------------------
+
+
+
       else{
          terminaltextcolor(RED);
          std::cerr << "Error - Unknown control statement \'"<< prefix << ":" << word << "\' on line " << line << " of input file" << std::endl;

@@ -51,7 +51,7 @@
 
 namespace err
    {
-   bool check=false;
+   bool check=true;
 
    /// Default vexit
    void vexit(){

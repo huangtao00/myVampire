@@ -130,6 +130,8 @@ namespace sim{
 	int integrator=0; /// 0 = LLG Heun; 1= MC; 2 = LLG Midpoint; 3 = CMC 
 	int program=0; 
 	int AnisotropyType=2; /// Controls scalar (0) or tensor(1) anisotropy (off(2))
+
+    int UniaxialKu=1;
 	
 	bool surface_anisotropy=false; /// flag to enable surface anisotropy
 	bool identify_surface_atoms=false; /// flag to idenify surface atoms in config coordinate file
@@ -218,7 +220,8 @@ int run(){
 
 	// For MPI version, calculate initialisation time
 	if(vmpi::my_rank==0){
-		#ifdef MPICF
+        #ifdef MPICF
+
 			std::cout << "Time for initialisation: " << MPI_Wtime()-vmpi::start_time << std::endl;
 			zlog << zTs() << "Time for initialisation: " << MPI_Wtime()-vmpi::start_time << std::endl;
 			vmpi::start_time=MPI_Wtime(); // reset timer
@@ -387,7 +390,7 @@ int run(){
 			zlog << "Unknown Internal Program ID "<< sim::program << " requested, exiting" << std::endl;
 			exit (EXIT_FAILURE);
 			}
-	}
+    }//end of switch case
 
    //------------------------------------------------
    // Output Monte Carlo statistics if applicable
@@ -402,6 +405,8 @@ int run(){
       zlog << zTs() << "\t" << ((sim::mc_statistics_moves - sim::mc_statistics_reject)/sim::mc_statistics_moves)*100.0 << "% Accepted" << std::endl;
       zlog << zTs() << "\t" << (sim::mc_statistics_reject/sim::mc_statistics_moves)*100.0                              << "% Rejected" << std::endl;
    }
+
+
    if(sim::integrator==3 || sim::integrator==4){
       std::cout << "Constrained Monte Carlo statistics:" << std::endl;
       std::cout << "\tTotal moves: " << cmc::mc_total << std::endl;
@@ -441,7 +446,7 @@ int run(){
 ///
 /// @return EXIT_SUCCESS
 /// 
-/// @internal
+/// @interndal
 ///	Created:		05/02/2011
 ///	Revision:	  ---
 ///=====================================================================================

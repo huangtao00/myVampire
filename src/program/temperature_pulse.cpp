@@ -91,15 +91,19 @@ double temperature_pulse_function(double function_time){
 ///-----------------------------------------------------------------------------------------
 double two_temperature_function(double ftime){
 
-		const double reduced_time =  (ftime-3.*sim::pump_time)/(sim::pump_time);
-		const double pump=sim::pump_power*exp(-reduced_time*reduced_time);
-
+        //from sim:equilibration-temperature= x (input file)
 		const double Te = sim::TTTe;
 		const double Tp = sim::TTTp;
-		const double G  = sim::TTG;
-		const double Ce = sim::TTCe;
-		const double Cl = sim::TTCl;
-		const double dt = mp::dt_SI;
+
+        //constant from input
+        const double G  = sim::TTG;   //electron and phonon coupling constant
+        const double Ce = sim::TTCe;  //electron capacity
+        const double Cl = sim::TTCl;  //phonon capacity
+
+        const double dt = mp::dt_SI;
+
+        const double reduced_time =  (ftime-3.*sim::pump_time)/(sim::pump_time);
+        const double pump=sim::pump_power*exp(-reduced_time*reduced_time);
 
 		sim::TTTe = (-G*(Te-Tp)+pump)*dt/(Ce*Te) + Te;
 		sim::TTTp = ( G*(Te-Tp)     )*dt/Cl + Tp - (Tp-sim::Teq)*sim::HeatSinkCouplingConstant*dt;
@@ -219,10 +223,9 @@ void temperature_pulse(){
 
    // If local temperature is set then also initalise local temperatures
    if(sim::local_temperature==true){
-      for(int mat=0;mat<mp::material.size();mat++){
-         if(mp::material[mat].couple_to_phonon_temperature==true) mp::material[mat].temperature=sim::TTTp;
-         else mp::material[mat].temperature=sim::TTTe;
-      }
+      for(int mat=0;mat<mp::material.size();mat++)
+             mp::material[mat].temperature=sim::TTTe;
+
    }
 
    // Equilibrate system
@@ -246,31 +249,33 @@ void temperature_pulse(){
 	// Simulate temperature pulse
 	while(sim::time<sim::total_time+start_time){
 
-		// loop over partial_time to update temperature every time 
-		for(int tt=0; tt < sim::partial_time; tt++){
+                // loop over partial_time to update temperature every time
+                for(int tt=0; tt < sim::partial_time; tt++){
 
-			// Calculate time from pulse
-			double time_from_start=mp::dt_SI*double(sim::time-start_time);
-			
-			// Calculate temperature
-			sim::temperature=temperature_pulse_function(time_from_start);
-			
-			// Integrate system
-			sim::integrate(1);
-			
-		}
-		
-		// Calculate magnetisation statistics
-		stats::mag_m();
+                    // Calculate time from pulse
+                    double time_from_start=mp::dt_SI*double(sim::time-start_time);
 
-		// Output data
-		vout::data();
+                    // Calculate temperature
+                    sim::temperature=temperature_pulse_function(time_from_start);  //calculate material temperature
+
+                    // Integrate system
+                    sim::integrate(1);   // calculate spin dynamics
+
+                }
+
+                // Calculate magnetisation statistics
+                stats::mag_m();
+
+                // Output data
+                vout::data();  //go througn dt*partial_time times
 
 	}
 	
 	}
 
-} // end of temperature pulse
+
+
+} // end of temperature pulse function
 
 } // end of namespace program
 

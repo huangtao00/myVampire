@@ -345,14 +345,18 @@ int main(){
 				pfile << "#declare rscale"<< imat << "=1.2;" << std::endl;
 				pfile << "#declare cscale"<< imat << "=3.54;" << std::endl;
 				pfile << "#declare cones"<< imat << "=0;" << std::endl;
-				pfile << "#declare arrows"<< imat << "=1;" << std::endl;
+				//pfile << "#declare arrows"<< imat << "=1;" << std::endl;
 				pfile << "#declare spheres"<< imat << "=1;" << std::endl;
+				pfile << "#declare arrows"<< imat << "=0;" << std::endl;
+
+
 				pfile << "#declare cubes" << imat << "=0;" << std::endl;
 				pfile << "#declare spincolors"<< imat << "=1;" << std::endl;
 				pfile << "#declare spincolor"<< imat << "=pigment {color rgb < 0.1 0.1 0.1 >};" << std::endl;
 				pfile << "#macro spinm"<< imat << "(cx,cy,cz,sx,sy,sz, cr,cg,cb)" << std::endl;
 				pfile << "union{" << std::endl;
-				pfile << "#if(spheres" << imat << ") sphere {<cx,cy,cz>,0.5*rscale"<< imat << "} #end" << std::endl;
+				pfile << "#if(spheres" << imat << ") sphere {<cx,cy,cz>,0.9*rscale"<< imat << "} #end" << std::endl;
+				//pfile << "#if(spheres" << imat << ") sphere {<cx,cy,cz>,0.5*rscale"<< imat << "} #end" << std::endl;
 				pfile << "#if(cubes" << imat << ") box {<cx-cscale"<< imat << "*0.5,cy-cscale" << imat << "*0.5,cz-cscale"<< imat << "*0.5>,<cx+cscale"<< imat << "*0.5,cy+cscale" << imat << "*0.5,cz+cscale"<< imat << "*0.5>} #end" << std::endl;
 				pfile << "#if(cones"<< imat << ") cone {<cx+0.5*sx*sscale0,cy+0.5*sy*sscale"<< imat << ",cz+0.5*sz*sscale"<< imat << ">,0.0 <cx-0.5*sx*sscale"<< imat << ",cy-0.5*sy*sscale"<< imat << ",cz-0.5*sz*sscale"<< imat << ">,sscale0*0.5} #end" << std::endl;
 				pfile << "#if(arrows" << imat << ") cylinder {<cx+sx*0.5*sscale"<< imat <<",cy+sy*0.5*sscale"<< imat <<",cz+sz*0.5*sscale"<< imat <<

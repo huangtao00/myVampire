@@ -31,7 +31,7 @@ namespace ltmp{
       // store number of local atoms as local constant for compiler
       const int num_local_atoms = ltmp::internal::num_local_atoms;
 
-      // Initialise thermal field random numbers
+      // Initialise thermal field random numbers  ,maybe for  integrator
       generate (ltmp::internal::x_field_array.begin(),ltmp::internal::x_field_array.begin()+num_local_atoms, mtrandom::gaussian);
       generate (ltmp::internal::y_field_array.begin(),ltmp::internal::y_field_array.begin()+num_local_atoms, mtrandom::gaussian);
       generate (ltmp::internal::z_field_array.begin(),ltmp::internal::z_field_array.begin()+num_local_atoms, mtrandom::gaussian);
@@ -40,6 +40,7 @@ namespace ltmp{
       if(ltmp::internal::temperature_rescaling){
          // calculate local thermal field for all atoms with rescaled temperature
          for(int atom=0; atom<ltmp::internal::num_local_atoms; ++atom) {
+
             const int cell = ltmp::internal::atom_temperature_index[atom]; /// get cell index for atom temperature (Te or Tp)
             const double rootT = ltmp::internal::root_temperature_array[cell]; /// get sqrt(T) for atom
             const double sigma = ltmp::internal::atom_sigma[atom]; /// unrolled list of thermal prefactor
@@ -53,6 +54,7 @@ namespace ltmp{
             ltmp::internal::x_field_array[atom]*= sigma*rescaled_rootT;
             ltmp::internal::y_field_array[atom]*= sigma*rescaled_rootT;
             ltmp::internal::z_field_array[atom]*= sigma*rescaled_rootT;
+
          }
       }
       // otherwise use faster version without rescaling

@@ -109,6 +109,7 @@ namespace vout{
    void zLogTsInit(std::string tmp){
 
       // Get program name and process ID
+//**************************Get program name********************/
       std::string tmprev;
       int linelength = tmp.length();
 
@@ -130,9 +131,9 @@ namespace vout{
       linelength=tmprev.size();
       for(int i=linelength-1;i>=0;i--){
          char c=tmprev.at(i);
-         zLogProgramName.push_back(c);
+         zLogProgramName.push_back(c);  //save programe name at zLogProgramName
       }
-
+//************************Get Host Name***************************/
       // Get hostname
       char loghostname [80];
       #ifdef WIN_COMPILE
@@ -144,15 +145,15 @@ namespace vout{
 	  terminaltextcolor(YELLOW);
       if(GHS!=0) std::cerr << "Warning: Unable to retrieve hostname for zlog file." << std::endl;
 	  terminaltextcolor(WHITE);
-      zLogHostName = loghostname;
-
+      zLogHostName = loghostname;  //save host name at  zLogHostName
+//***************************************************************/
       // Now get process ID
       #ifdef WIN_COMPILE
          zLogPid = _getpid();
       #else
          zLogPid = getpid();
       #endif
-
+//***************************************************************/
       // Set unique filename for log if num_procs > 1
       std::stringstream logfn;
       if(vmpi::num_processors==1) logfn << "log";
@@ -162,6 +163,7 @@ namespace vout{
       std::string log_file = logfn.str();
       const char* log_filec = log_file.c_str();
       zlog.open(log_filec);
+//***************************************************************/
 
       // Mark as initialised;
       zLogInitialised=true;
@@ -620,7 +622,7 @@ int read(string const filename){
 		// clear carriage return for dos formatted files
 		line.erase(remove(line.begin(), line.end(), '\r'), line.end());
 		
-		// strip key,word,unit,value
+        // strip key,word,value,unit
 		std::string key="";
 		std::string word="";
 		std::string value="";
@@ -705,19 +707,23 @@ int read(string const filename){
 					break;
 				}
 				//break;
-		}
+        }  //end of for
+
+//经过上面的for循环后，key word value unit 和对应的行数都得到了
 		string empty="";
 		if(key!=empty){
 		//std::cout << "\t" << "key:  " << key << std::endl;
-		//std::cout << "\t" << "word: " << word << std::endl;
+        //std::cout << "\t" << "word: " << wormatchd << std::endl;
 		//std::cout << "\t" << "value:" << value << std::endl;
 		//std::cout << "\t" << "unit: " << unit << std::endl;
+        //get key world value unit line_number   eg, sim:promgram=monte-carlo
 		int matchcheck = match(key, word, value, unit, line_counter);
 		if(matchcheck==EXIT_FAILURE){
 			err::vexit();
 		}
 		}
-	}
+    }//end of while
+
 	// Close file
 	inputfile.close();
 
@@ -1271,7 +1277,7 @@ int match_dimension(string const word, string const value, string const unit, in
    }
    else
    //--------------------------------------------------------------------
-   test="system-size";
+   test="";
    if(word==test){
       double d=atof(value.c_str());
       check_for_valid_value(d, word, line, prefix, unit, "length", 0.1, 1.0e7,"input","0.1 Angstroms - 1 millimetre");
@@ -1313,6 +1319,7 @@ int match_dimension(string const word, string const value, string const unit, in
    if(word==test){
       double psize=atof(value.c_str());
       check_for_valid_value(psize, word, line, prefix, unit, "length", 0.1, 1.0e7,"input","0.1 Angstroms - 1 millimetre");
+      //std::cout<<"particle size in vio "<<psize<<std::endl;
       cs::particle_scale=psize;
       return EXIT_SUCCESS;
    }
@@ -2158,6 +2165,13 @@ int match_sim(string const word, string const value, string const unit, int cons
    return EXIT_SUCCESS;
 }
 
+
+
+
+
+
+
+
 int match_config(string const word, string const value, int const line){
 
    std::string prefix="config:";
@@ -2585,6 +2599,12 @@ int match_vout_list(string const word, string const value, int const line, std::
    if(word==test){
       vmpi::DetailedMPITiming=true;
       output_list.push_back(60);
+      return EXIT_SUCCESS;
+   }
+   test="Ku";
+   if(word==test){
+      vmpi::DetailedMPITiming=true;
+      output_list.push_back(61);
       return EXIT_SUCCESS;
    }
    //--------------------------------------------------------------------
@@ -3205,7 +3225,7 @@ int match_material(string const word, string const value, string const unit, int
          gfile >> read_material[super_index].geometry;
          if((read_material[super_index].geometry<3) || (read_material[super_index].geometry>100)){
             terminaltextcolor(RED);
-			std::cerr << "Error in geometry input file " << value.c_str() << " - first number must be non zero integer in the range 3-100"<< std::endl;
+            std::cerr << "Error in geometry input file " << value.c_str() << " - first number must be non zero integer in the range 3-100"<< std::endl;
             terminaltextcolor(WHITE);
 			return EXIT_FAILURE;
          }
@@ -3313,7 +3333,7 @@ int match_material(string const word, string const value, string const unit, int
 			return EXIT_FAILURE;
          }
          else{
-            read_material[super_index].alloy_class=ac;
+            read_material[super_index].alloy_class=ac;  //value for ordered alloy
             return EXIT_SUCCESS;
          }
       }
@@ -3722,8 +3742,8 @@ int match_material(string const word, string const value, string const unit, int
 		if(word==test){
 			double f=atof(value.c_str());
 			// Test for valid range
-			if((f>=0.0) && (f<1.0E20)){
-				read_material[super_index].fmr_field_frequency=f;
+            if((f>=0.0) && (f<1.0E20)){
+                read_material[super_index].fmr_field_frequency=f;
 				// set local fmr flag
 				sim::local_fmr_field=true;
 				return EXIT_SUCCESS;
@@ -4126,6 +4146,11 @@ namespace vout{
    void material_height_mvec_actual(std::ostream& stream){
       stream << stats::material_height_magnetization.output_magnetization();
    }
+// output functions 61 added by huangtao
+   void get_Ku_micromagnetism(std::ostream& stream)
+   {
+     stream << stats::Ku<<"\t";
+   }
 
    // Output Function 60
 	void MPITimings(std::ostream& stream){
@@ -4318,6 +4343,10 @@ namespace vout{
             case 60:
 					vout::MPITimings(zmag);
 					break;
+            case 61:
+                    vout::get_Ku_micromagnetism(zmag);
+                    break;
+
 			}
 		}
 		// Carriage return

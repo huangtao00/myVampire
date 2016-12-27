@@ -225,8 +225,19 @@ double spin_exchange_energy_tensor(const int atom, const double Sx, const double
 ///=====================================================================================
 ///
 double spin_scalar_anisotropy_energy(const int imaterial, const double Sz){
-	
-	return mp::MaterialScalarAnisotropyArray[imaterial].K*Sz*Sz;
+    static double  d2=2.286e-23;//two-ion anisotropy contribution
+    static int flag=2;
+    if(flag==1)
+    {
+        d2=d2/mp::material[imaterial].mu_s_SI*4;  //must divided by mu_s_SI before added
+        std::cout<< mp::MaterialScalarAnisotropyArray[imaterial].K<<"  "<<d2<<std::endl;
+        std::cout<<mp::MaterialScalarAnisotropyArray[imaterial].K-d2<<std::endl;
+        mp::MaterialScalarAnisotropyArray[imaterial].K-=d2;
+        flag++;
+    }
+
+
+    return mp::MaterialScalarAnisotropyArray[imaterial].K*Sz*Sz;
 	
 }
 // E = Ku(S . e)(S . e) = (Sxex + Syey + Szez)**2 = Sx exSxex + 2*Sx exSyey + 2*Sx exSzez + SyeySyey + 2*SyeySzez+ SzezSzez ==

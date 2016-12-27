@@ -110,8 +110,8 @@ int create_system_type(std::vector<cs::catom_t> & catom_array){
 		// call fill function to fill in void
 		fill(catom_array);
 
-		// call geometry function
-		geometry(catom_array);
+        // call geometry function
+        geometry(catom_array);
 
 		// call intermixing function - must be before alloy function
 		intermixing(catom_array);
@@ -178,6 +178,7 @@ int particle(std::vector<cs::catom_t> & catom_array){
 		(2.0*unit_cell.dimensions[0]<cs::system_dimensions[0]) && 
 		(2.0*unit_cell.dimensions[1]<cs::system_dimensions[1]) &&
 		(2.0*unit_cell.dimensions[2]<cs::system_dimensions[2])){
+
 		particle_origin[0]+=unit_cell.dimensions[0]*0.5;
 		particle_origin[1]+=unit_cell.dimensions[1]*0.5;
 		particle_origin[2]+=unit_cell.dimensions[2]*0.5;
@@ -268,8 +269,8 @@ int particle_array(std::vector<cs::catom_t> & catom_array){
 					case 2: // Cylinder
 						cylinder(particle_origin,catom_array,particle_number);
 						break;
-               case 3: // Ellipsoid
-                  ellipsoid(particle_origin,catom_array,particle_number);
+                   case 3: // Ellipsoid
+                         ellipsoid(particle_origin,catom_array,particle_number);
                   break;
 					case 4: // Sphere
 						sphere(particle_origin,catom_array,particle_number);
@@ -301,6 +302,13 @@ int particle_array(std::vector<cs::catom_t> & catom_array){
 	// Re-order atoms by particle number
 	sort_atoms_by_grain(catom_array);
 
+/*
+    //add by huangto to see the catom_array grain number
+    for (int i=0;i<catom_array.size();i++)
+    {
+        std::cout<<i<<":grain number="<<catom_array[i].grain<<std::abortendl;
+    }
+*/
 	return EXIT_SUCCESS;	
 }
 /*
@@ -553,12 +561,12 @@ int sort_atoms_by_grain(std::vector<cs::catom_t> & catom_array){
 int alloy(std::vector<cs::catom_t> & catom_array){
 	// check calling of routine if error checking is activated
 	if(err::check==true){std::cout << "cs::alloy has been called" << std::endl;}	
-
 	// loop over all atoms
 	for(unsigned int atom=0;atom<catom_array.size();atom++){
 		// if atom material is alloy master then reassign according to % chance
 		int local_material=catom_array[atom].material;
-		if(mp::material[local_material].alloy_master==true){
+        if(mp::material[local_material].alloy_master==true){   //be sure that u want to generate alloy material
+
 		  // now check for unordered alloy
 			if(mp::material[local_material].alloy_class==-1){
 				//loop over all potential alloy materials
@@ -571,6 +579,7 @@ int alloy(std::vector<cs::catom_t> & catom_array){
 			}
 			// if not ordered, then assume ordered
 			else{
+                //std::cout<<"create ordered alloy"<<std::endl;
 				// loop over all alloy materials
 				for(int mat=0;mat<mp::num_materials;mat++){
 					// get class of alloy material
@@ -581,6 +590,7 @@ int alloy(std::vector<cs::catom_t> & catom_array){
 					if(catom_array[atom].uc_category==alloy_class){
 						// set material
 						catom_array[atom].material=mat;
+                        //std::cout<<"materinal"<<mat<<std::endl;
 					}
 				}
 			}
@@ -815,29 +825,29 @@ void dilute (std::vector<cs::catom_t> & catom_array){
   
 void geometry (std::vector<cs::catom_t> & catom_array){
 	// check calling of routine if error checking is activated
-	if(err::check==true){std::cout << "cs::geometry has been called" << std::endl;}
+    if(err::check==true){std::cout << "cs::geometry has been called" << std::endl;}
     
-	// Check for any geometry
+    // Check for any geometry
 	bool cut=false;
 	
 	for(int mat=0; mat<mp::num_materials; mat++){
-		if(mp::material[mat].geometry>0) cut=true;
+        if(mp::material[mat].geometry>0) cut=true;
 	}
 	
-	// Return from function if no geometry is defined. 
+    // Return from function if no geometry is defined.
 	if(cut==false) return;
 	
 	// Otherwise proceed
-	zlog << zTs() << "Cutting materials within defined geometry." << std::endl; 
+    zlog << zTs() << "Cutting materials within defined geometry." << std::endl;
 	
-	// Check for force material type by geometry 
+    // Check for force material type by geometry
 	if(cs::SelectMaterialByGeometry==false){
 		
 		// loop over all atoms
 		for(unsigned int atom=0;atom<catom_array.size();atom++){
 			
-			// check for geometry information
-			const int geo=mp::material[catom_array[atom].material].geometry;
+            // check for geometry information
+            const int geo=mp::material[catom_array[atom].material].geometry;
 
 			// if exists, then remove atoms outside polygon
 			if(geo!=0){
@@ -847,8 +857,8 @@ void geometry (std::vector<cs::catom_t> & catom_array){
 				std::vector<double> py(geo);
 				// Initialise polygon points
 				for(int p=0;p<geo;p++){
-					px[p]=mp::material[catom_array[atom].material].geometry_coords[p][0]*cs::system_dimensions[0];
-					py[p]=mp::material[catom_array[atom].material].geometry_coords[p][1]*cs::system_dimensions[1];
+                    px[p]=mp::material[catom_array[atom].material].geometry_coords[p][0]*cs::system_dimensions[0];
+                    py[p]=mp::material[catom_array[atom].material].geometry_coords[p][1]*cs::system_dimensions[1];
 				}
 				// check if point is outside of polygon, if so delete it 
 				if(vmath::point_in_polygon2(x,y,px,py,geo)==false){
@@ -867,7 +877,7 @@ void geometry (std::vector<cs::catom_t> & catom_array){
 			catom_array[atom].include=false;
 		}
 		
-		// loop over all materials and include according to geometry
+        // loop over all materials and include according to geometry
 
 		// determine z-bounds for materials
 		std::vector<double> mat_min(mp::num_materials);
@@ -884,10 +894,10 @@ void geometry (std::vector<cs::catom_t> & catom_array){
 		// Loop over all materials	
 		for(int mat=0;mat<mp::num_materials;mat++){
 
-			// check for geometry information
-			const int geo=mp::material[mat].geometry;
+            // check for geometry information
+            const int geo=mp::material[mat].geometry;
 
-			// if geometry information exists, then include atoms inside polygon and within material height
+            // if geometry information exists, then include atoms inside polygon and within material height
 			if(geo!=0){
 
 				// create array to store geoemtric points
@@ -895,8 +905,8 @@ void geometry (std::vector<cs::catom_t> & catom_array){
 				std::vector<double> py(geo);
 				// Initialise polygon points
 				for(int p=0;p<geo;p++){
-					px[p]=mp::material[mat].geometry_coords[p][0]*cs::system_dimensions[0];
-					py[p]=mp::material[mat].geometry_coords[p][1]*cs::system_dimensions[1];
+                    px[p]=mp::material[mat].geometry_coords[p][0]*cs::system_dimensions[0];
+                    py[p]=mp::material[mat].geometry_coords[p][1]*cs::system_dimensions[1];
 				}
 			
 				for(unsigned int atom=0;atom<catom_array.size();atom++){
@@ -929,13 +939,11 @@ void geometry (std::vector<cs::catom_t> & catom_array){
 void fill(std::vector<cs::catom_t> & catom_array){
    // check calling of routine if error checking is activated
    if(err::check==true){std::cout << "cs::fill has been called" << std::endl;}
-
    //loop over all potential intermixing materials
    for(int mat=0;mat<mp::num_materials;mat++){
       if(mp::material[mat].fill){
          double min = mp::material[mat].min*cs::system_dimensions[2];
          double max = mp::material[mat].max*cs::system_dimensions[2];
-
          // loop over all atoms selecting only deselected atoms within min/max
          for(unsigned int atom=0;atom<catom_array.size();atom++){
             if( (catom_array[atom].z < max) && (catom_array[atom].z >= min) && (catom_array[atom].include==false)){

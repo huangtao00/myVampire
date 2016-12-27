@@ -53,6 +53,7 @@
 #include "vmpi.hpp"
 #include "sim.hpp"
 #include "stats.hpp"
+#include "cells.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -69,6 +70,7 @@ int calculate_external_fields(const int,const int);
 ///
 namespace stats
 {
+   double Ku=0;    ///save uniaxial anisotropy const
    int num_atoms;				/// Number of atoms for statistic purposes
    double inv_num_atoms;	/// 1.0/num_atoms
    double max_moment;		/// Total Maximum moment
@@ -419,13 +421,49 @@ void system_energy(){
    //------------------------------
    // Calculate anisotropy energy
    //------------------------------
+
+   int p=0;int n=0;
    if(sim::AnisotropyType==0){ // Isotropic
       double register energy=0.0;
+      double register energy_ku=0.0;
       for(int atom=0; atom<stats::num_atoms; atom++){
+
          const double Sz=atoms::z_spin_array[atom];
          const int imaterial=atoms::type_array[atom];
-         energy+=sim::spin_scalar_anisotropy_energy(imaterial, Sz)*mp::material[imaterial].mu_s_SI;
+         double one_energy=sim::spin_scalar_anisotropy_energy(imaterial, Sz)*mp::material[imaterial].mu_s_SI;
+         double one_energy_ku=one_energy;
+
+         if(Sz<0)
+         {
+             n++;
+             //one_energy=-one_energy;
+             one_energy_ku=-one_energy;
+         }
+         //energy is the total uniaxial anisotropic  energy of z axis,i have to convert it to Ku of micromagnetism
+         energy+=one_energy;
+         double Kpt_factor=10;
+         energy_ku+=one_energy_ku*Kpt_factor;
+
       }
+     //added by ht 2015 11 27  测试在居里温度时，Z+-方向的磁矩是否一半一半
+    //  std::cout<<"p="<<p<<std::endl;
+    //  std::cout<<"n="<<n<<std::endl;
+      /*
+必须在这里添加计算
+       */
+      //calculate the 计算单轴各向异性能  stats::Ku
+      if (sim::UniaxialKu==1)
+      {
+          int all_atoms=stats::num_atoms;
+          int nunit=cells::num_atoms_in_unit_cell;
+          double ux=cs::unit_cell.dimensions[0];
+          double uy=cs::unit_cell.dimensions[1];
+          double uz=cs::unit_cell.dimensions[2];
+          double volumn=all_atoms*ux*uy*uz/nunit;
+          //double !A_cubic=1e30 nm;
+          energy_ku=energy_ku/(volumn*1e-30);
+      }
+      stats::Ku=energy_ku;
       stats::total_anisotropy_energy=energy;
    }
    else if(sim::AnisotropyType==1){ // Tensor

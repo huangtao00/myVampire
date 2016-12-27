@@ -109,8 +109,10 @@ int initialise(std::string const infile){
 	// Setup default system settings
 	mp::default_system();
 	
-	// Read values from input files
+    // Read values from input files
 	int iostat = vin::read(infile);
+
+
 	if(iostat==EXIT_FAILURE){
 		terminaltextcolor(RED);
 		std::cerr << "Error - input file \'" << infile << "\' not found, exiting" << std::endl;
@@ -119,7 +121,9 @@ int initialise(std::string const infile){
 	}
 	
 	// Print out material properties
-	//mp::material[0].print();
+   for (int i=0;i<mp::num_materials;i++)
+    mp::material[i].print();
+
 
 	// Check for keyword parameter overide
 	if(cs::single_spin==true){
@@ -128,13 +132,18 @@ int initialise(std::string const infile){
 	
 	// Set derived system parameters
 	mp::set_derived_parameters();
-	
+
 	// Return
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;   //return 0 means success
 }
+
+
+
 
 int default_system(){
 
+    //set sim::UniaxialKu=1
+     sim::UniaxialKu=1;
 	// Initialise system creation flags to zero
 	for (int i=0;i<10;i++){
 		cs::system_creation_flags[i] = 0;
@@ -168,7 +177,7 @@ int default_system(){
 	sim::hamiltonian_simulation_flags[4] = 0;	/// Dipolar
 	
 	//Integration parameters
-	dt_SI = 1.0e-15;	// seconds
+    dt_SI = 1.0e-15;	// seconds 1fs
 	dt = dt_SI*mp::gamma_SI; // Must be set before Hth
 	half_dt = 0.5*dt;
 	
@@ -190,10 +199,10 @@ int default_system(){
 	material[0].element="Ag ";
 
 	// Disable Error Checking
-	err::check=false;
+    err::check=false;
 	
 	// Initialise random number generator
-	mtrandom::grnd.seed(2106975519);
+    mtrandom::grnd.seed(2106975500);
 
 	return EXIT_SUCCESS;
 }
@@ -231,6 +240,10 @@ int single_spin_system(){
 
 	return EXIT_SUCCESS;
 }
+
+
+
+
 
 
 // Simple function to check for valid input for hysteresis loop parameters
@@ -366,14 +379,14 @@ void check_hysteresis_loop_parameters(){
 int set_derived_parameters(){
 		
 	// Set integration constants
-	mp::dt = mp::dt_SI*mp::gamma_SI; // Must be set before Hth
+    mp::dt = mp::dt_SI*mp::gamma_SI; // Must be set before Hth  WHY?
 	mp::half_dt = 0.5*mp::dt;
 
 	// Check to see if field direction is set by angle
 	if(sim::applied_field_set_by_angle){
-		sim::H_vec[0]=sin(sim::applied_field_angle_phi*M_PI/180.0)*cos(sim::applied_field_angle_theta*M_PI/180.0);
-		sim::H_vec[1]=sin(sim::applied_field_angle_phi*M_PI/180.0)*sin(sim::applied_field_angle_theta*M_PI/180.0);
-		sim::H_vec[2]=cos(sim::applied_field_angle_phi*M_PI/180.0);
+        sim::H_vec[0]=sin(sim::applied_field_angle_phi*M_PI/180.0)*cos(sim::applied_field_angle_theta*M_PI/180.0);//x
+        sim::H_vec[1]=sin(sim::applied_field_angle_phi*M_PI/180.0)*sin(sim::applied_field_angle_theta*M_PI/180.0);//y
+        sim::H_vec[2]=cos(sim::applied_field_angle_phi*M_PI/180.0);//z
 	}
 	
 	// Check for valid particle array offsets
@@ -461,14 +474,21 @@ int set_derived_parameters(){
 		for(int j=0;j<mp::num_materials;j++){
 			material[mat].Jij_matrix[j]				= mp::material[mat].Jij_matrix_SI[j]/mp::material[mat].mu_s_SI;
 		}
-		mp::material[mat].Ku									= mp::material[mat].Ku1_SI/mp::material[mat].mu_s_SI;
+
+
+
+
+        mp::material[mat].Ku					   = mp::material[mat].Ku1_SI/mp::material[mat].mu_s_SI;
       mp::material[mat].Ku2                        = mp::material[mat].Ku2_SI/mp::material[mat].mu_s_SI;
       mp::material[mat].Ku3                        = mp::material[mat].Ku3_SI/mp::material[mat].mu_s_SI;
+
       mp::material[mat].Klatt                      = mp::material[mat].Klatt_SI/mp::material[mat].mu_s_SI;
-		mp::material[mat].Kc									= mp::material[mat].Kc1_SI/mp::material[mat].mu_s_SI;
-		mp::material[mat].Ks									= mp::material[mat].Ks_SI/mp::material[mat].mu_s_SI;
-		mp::material[mat].H_th_sigma						= sqrt(2.0*mp::material[mat].alpha*1.3806503e-23/
-																  (mp::material[mat].mu_s_SI*mp::material[mat].gamma_rel*dt));
+        mp::material[mat].Kc					   = mp::material[mat].Kc1_SI/mp::material[mat].mu_s_SI;
+        mp::material[mat].Ks					   = mp::material[mat].Ks_SI/mp::material[mat].mu_s_SI;
+
+
+        mp::material[mat].H_th_sigma						= sqrt(   2.0*mp::material[mat].alpha*1.3806503e-23/
+                                                                  ( mp::material[mat].mu_s_SI*mp::material[mat].gamma_rel*dt)   );
 
       // Rename un-named materials with material id
       std::string defname="material#n";
@@ -485,6 +505,8 @@ int set_derived_parameters(){
       //mp::material[mat].lattice_anisotropy.output_interpolated_function(mat);
 
 	}
+
+
 		// Check for which anisotropy function(s) are to be used		
 		if(sim::TensorAnisotropy==true){
 			sim::UniaxialScalarAnisotropy=false; // turn off scalar anisotropy calculation
@@ -553,7 +575,7 @@ int set_derived_parameters(){
 				MaterialTensorAnisotropyArray[mat].K[2][2]=mp::material.at(mat).KuVec.at(8);
 
 			}
-		}
+        }
       // Unroll second order uniaxial anisotropy values for speed
       if(sim::second_order_uniaxial_anisotropy==true){
          zlog << zTs() << "Setting scalar second order uniaxial anisotropy." << std::endl;
@@ -561,7 +583,7 @@ int set_derived_parameters(){
          for(int mat=0;mat<mp::num_materials; mat++) mp::material_second_order_anisotropy_constant_array.at(mat)=mp::material[mat].Ku2;
       }
 	  // Unroll sixth order uniaxial anisotropy values for speed
-      if(sim::second_order_uniaxial_anisotropy==true){
+      if(sim::sixth_order_uniaxial_anisotropy==true){
          zlog << zTs() << "Setting scalar sixth order uniaxial anisotropy." << std::endl;
          mp::material_sixth_order_anisotropy_constant_array.resize(mp::num_materials);
          for(int mat=0;mat<mp::num_materials; mat++) mp::material_sixth_order_anisotropy_constant_array.at(mat)=mp::material[mat].Ku3;
@@ -583,7 +605,10 @@ int set_derived_parameters(){
 			for(int mat=0;mat<mp::num_materials; mat++) MaterialCubicAnisotropyArray.at(mat)=mp::material[mat].Kc;
 		}
 
-		// Loop over materials to check for invalid input and warn appropriately
+
+
+
+        // Loop over materials to check for invalid input and warn appropriately 检查材料高度是否重叠
 		for(int mat=0;mat<mp::num_materials;mat++){
 			const double lmin=material[mat].min;
 			const double lmax=material[mat].max;
@@ -596,7 +621,7 @@ int set_derived_parameters(){
 						std::cerr << "Warning: Overlapping material heights found. Check log for details." << std::endl;
 						terminaltextcolor(WHITE);
 						zlog << zTs() << "Warning: material " << mat+1 << " overlaps material " << nmat+1 << "." << std::endl;
-						zlog << zTs() << "If you have defined geometry then this may be OK, or possibly you meant to specify alloy keyword instead." << std::endl;
+                        zlog << zTs() << "If you have defined geometry then this may be OK, or possibly you meant to specify alloy keyword instead." << std::endl;
 						zlog << zTs() << "----------------------------------------------------" << std::endl;
 						zlog << zTs() << "  Material "<< mat+1 << ":minimum-height = " << lmin << std::endl;
 						zlog << zTs() << "  Material "<< mat+1 << ":maximum-height = " << lmax << std::endl;

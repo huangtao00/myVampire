@@ -301,6 +301,9 @@ namespace cells{
 		return EXIT_SUCCESS;
 	}
 	
+
+
+
 /// @brief Cell magnetisation function
 ///
 /// @details Determines moment in each cell (J/T)

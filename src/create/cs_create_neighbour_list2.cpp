@@ -90,7 +90,7 @@ int create_neighbourlist(std::vector<cs::catom_t> & catom_array, std::vector<std
 	cneighbourlist.reserve(num_atoms);
 
 	// estimate number of interactions per atom
-	const int max_nn=int(1.1*(double(unit_cell.interaction.size())/double(unit_cell.atom.size())));
+    const int max_nn=int(1.1*(double(unit_cell.interaction.size())/double(unit_cell.atom.size())));// number of interactions per atom   how do u known this number
 	
 	// Reserve space for each atom in neighbour list according to material type
 	for(int atom=0;atom<num_atoms;atom++){
@@ -99,7 +99,7 @@ int create_neighbourlist(std::vector<cs::catom_t> & catom_array, std::vector<std
 	}
 
    // Calculate system dimensions and number of supercells
-   int max_val=(std::numeric_limits<int>::max());
+   int max_val=(std::numeric_limits<int>::max());  //a maximum number ,the int variable can  hold
    int min[3]={max_val,max_val,max_val}; // lowest cell id
    int max[3]={0,0,0}; // highest cell id
 
@@ -354,13 +354,15 @@ int create_neighbourlist(std::vector<cs::catom_t> & catom_array, std::vector<std
    zlog << zTs() << "\tDone" << std::endl;
 
 	// Print neighbour list
-	//for(int atom=0;atom<catom_array.size();atom++){
-	//	std::cout << atom << "\t";
-	//	for(int nn=0;nn<cneighbourlist[atom].size();nn++){
-	//		std::cout << cneighbourlist[atom][nn].nn << "\t";
-	//	}
-	//	std::cout << std::endl;
-	//}
+    /*
+      for(int atom=0;atom<catom_array.size();atom++){
+        std::cout << "atomID:"<<atom << "\t";
+        for(int nn=0;nn<cneighbourlist[atom].size();nn++){
+            std::cout << cneighbourlist[atom][nn].nn << "\t";
+        }
+        std::cout << std::endl;
+    }
+    */
 		
 	// Mark surface atoms
 	//for(int atom=0;atom<num_atoms;atom++){

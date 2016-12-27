@@ -97,7 +97,7 @@ void load_checkpoint(){
    // open checkpoint file
    std::ifstream chkfile;
    chkfile.open(chkfilename.c_str(),std::ios::binary);
-
+ 
    // check for open file
    if(!chkfile.is_open()){
       terminaltextcolor(RED);

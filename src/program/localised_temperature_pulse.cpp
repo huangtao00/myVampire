@@ -55,9 +55,11 @@ namespace program{
 
       // Output data
       vout::data();
-   }
+   } //end while
 
-   // record starting time after equilibration
+
+
+   // record starting time after equilibration,   this is the real simulated time after equilibration
    int start_time=sim::time;
 
    // Simulate temperature pulse
@@ -83,7 +85,7 @@ namespace program{
       // Output data
       vout::data();
 
-   }
+   }  //end of while loop
 
 } // end of temperature pulse
 

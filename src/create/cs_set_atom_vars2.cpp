@@ -184,7 +184,7 @@ int set_atom_vars(std::vector<cs::catom_t> & catom_array, std::vector<std::vecto
 	switch(atoms::exchange_type){
 		case -1:
 			// unroll material calculations
-			std::cout << "Using generic form of exchange interaction with " << unit_cell.interaction.size() << " total interactions." << std::endl;
+            //std::cout << "Using generic form of exchange interaction with " << unit_cell.interaction.size() << " total interactions." << std::endl;
 			zlog << zTs() << "Unrolled exchange template requires " << 1.0*double(atoms::neighbour_list_array.size())*double(sizeof(double))*1.0e-6 << "MB RAM" << std::endl;
 			atoms::i_exchange_list.reserve(atoms::neighbour_list_array.size());
 			// loop over all interactions
@@ -203,19 +203,22 @@ int set_atom_vars(std::vector<cs::catom_t> & catom_array, std::vector<std::vecto
 			atoms::exchange_type=0;
 			break;
 		case 0:
-			std::cout << "Using isotropic form of exchange interaction with " << unit_cell.interaction.size() << " total interactions." << std::endl;
+            //std::cout << "Using isotropic form of exchange interaction with " << unit_cell.interaction.size() << " total interactions." << std::endl;
 			zlog << zTs() << "Unrolled exchange template requires " << 1.0*double(unit_cell.interaction.size())*double(sizeof(double))*1.0e-6 << "MB RAM" << std::endl;
 			// unroll isotopic interactions
 			atoms::i_exchange_list.reserve(unit_cell.interaction.size());
 			for(unsigned int i=0;i<unit_cell.interaction.size();i++){
 				int iatom = unit_cell.interaction[i].i;
 				int imat = unit_cell.atom[iatom].mat;
+
+               //std::cout<<i<<" "<<-unit_cell.interaction[i].Jij[0][1]<<std::endl;
 				atoms::i_exchange_list.push_back(tmp_zval);
 				atoms::i_exchange_list[i].Jij=-unit_cell.interaction[i].Jij[0][0]/mp::material[imat].mu_s_SI;
 			}
+
 			break;
 		case 1:
-			std::cout << "Using vectorial form of exchange interaction with " << unit_cell.interaction.size() << " total interactions." << std::endl;
+            //std::cout << "Using vectorial form of exchange interaction with " << unit_cell.interaction.size() << " total interactions." << std::endl;
 			zlog << zTs() << "Unrolled exchange template requires " << 3.0*double(unit_cell.interaction.size())*double(sizeof(double))*1.0e-6 << "MB RAM" << std::endl;
 			// unroll isotopic interactions
 			atoms::v_exchange_list.reserve(unit_cell.interaction.size());
@@ -229,7 +232,7 @@ int set_atom_vars(std::vector<cs::catom_t> & catom_array, std::vector<std::vecto
 			}
 			break;
 		case 2:
-			std::cout << "Using tensorial form of exchange interaction with " << unit_cell.interaction.size() << " total interactions." << std::endl;
+            //std::cout << "Using tensorial form of exchange interaction with " << unit_cell.interaction.size() << " total interactions." << std::endl;
 			zlog << zTs() << "Unrolled exchange template requires " << 9.0*double(unit_cell.interaction.size())*double(sizeof(double))*1.0e-6 << "MB RAM" << std::endl;
 			// unroll isotopic interactions
 			atoms::t_exchange_list.reserve(unit_cell.interaction.size());

@@ -77,7 +77,7 @@ namespace cs{
 	double unit_cell_size[3]={3.54,3.54,3.54};		/// Unit Cell Size (A) [Will eventually be local to unit cells]
 	bool pbc[3]={false,false,false};						/// Periodic boundary conditions
 	bool SelectMaterialByZHeight=false;					/// Toggle overwriting of material id by z-height
-	bool SelectMaterialByGeometry=false;					/// Toggle override of input material type by geometry
+    bool SelectMaterialByGeometry=false;					/// Toggle override of input material type by geometry
 	unsigned int total_num_unit_cells[3]={0,0,0};	/// Unit cells for entire system (x,y,z)
 	unsigned int local_num_unit_cells[3]={0,0,0};	/// Unit cells on local processor (x,y,z)
 	std::string crystal_structure="sc";
@@ -152,7 +152,7 @@ int create(){
    cs::total_num_unit_cells[1]=int(vmath::iceil(cs::system_dimensions[1]/unit_cell.dimensions[1]));
    cs::total_num_unit_cells[2]=int(vmath::iceil(cs::system_dimensions[2]/unit_cell.dimensions[2]));
 
-	// check for pbc and if so round up system dimensions
+    // check for pbc and if so round up system dimensions
 	if(cs::pbc[0]==true) cs::system_dimensions[0]=cs::unit_cell_size[0]*(int(vmath::iceil(cs::system_dimensions[0]/cs::unit_cell_size[0])));
 	if(cs::pbc[1]==true) cs::system_dimensions[1]=cs::unit_cell_size[1]*(int(vmath::iceil(cs::system_dimensions[1]/cs::unit_cell_size[1])));
 	if(cs::pbc[2]==true) cs::system_dimensions[2]=cs::unit_cell_size[2]*(int(vmath::iceil(cs::system_dimensions[2]/cs::unit_cell_size[2])));
@@ -288,6 +288,7 @@ int create(){
 	// Set grain and cell variables for simulation
 	grains::set_properties();
 	cells::initialise();
+
 	if(sim::hamiltonian_simulation_flags[4]==1) demag::init();
 	
    // Determine number of local atoms
@@ -326,7 +327,52 @@ int create(){
    zlog << zTs() << "Total number of atoms (all CPUs): " << total_num_atoms << std::endl;
 	#else
 	std::cout << "Number of atoms generated: " << atoms::num_atoms << std::endl; 
-   zlog << zTs() << "Number of atoms generated: " << atoms::num_atoms << std::endl; 
+    zlog << zTs() << "Number of atoms generated: " << atoms::num_atoms << std::endl;
+
+    //rescaling the volume of the particle
+    if( cs::system_creation_flags[2]==0 and cs::system_creation_flags[1]==2) // means create a single magnetic partilce and the shape of the particle is cyliner
+    {
+        std::cout<<"***************************************************"<<std::endl;
+        std::cout<<"calculate the volume of a single particle "<<std::endl;
+        //method 1
+        int all_atoms=atoms::num_atoms;
+        int nunit=cells::num_atoms_in_unit_cell;
+        double ux=cs::unit_cell.dimensions[0];
+        double uy=cs::unit_cell.dimensions[1];
+        double uz=cs::unit_cell.dimensions[2];
+        double volume_atoms=all_atoms*ux*uy*uz/nunit;
+        std::cout<<"volume micro="<<volume_atoms<<std::endl;
+
+        //method 2
+        double height=cs::system_dimensions[2]; //height
+        double radius=cs::particle_scale/2;
+        const double pi=3.1415926;
+        double volume=pi*radius*radius*height;
+//        std::cout<<"height="<<height<<std::endl;  // 40
+//        std::cout<<"radius="<<radius<<std::endl;  // 20
+
+        std::cout<<"volume macro="<<volume<<std::endl;
+        //convert A to meter
+        double volume_SI=volume_atoms*1e-30;
+        std::cout<<"volume meter="<<volume_SI<<" m^3"<<std::endl;
+// change this constant to satisfify the satuiation
+#define adjust_prefactor 2*1e25
+        double volumeIn=volume_SI*adjust_prefactor;
+        std::cout<<"volumeIn="<<volumeIn<<std::endl;
+
+
+        if(sim::UniaxialScalarAnisotropy==true){
+            std::cout<<"adjust the volume factor"<<std::endl;
+            for(int mat=0;mat<mp::num_materials; mat++)
+            {
+                std::cout<<"original Ku="<<mp::MaterialScalarAnisotropyArray[mat].K<<std::endl;
+                mp::MaterialScalarAnisotropyArray[mat].K=mp::MaterialScalarAnisotropyArray[mat].K*volumeIn;
+                std::cout<<"adjusted Ku="<<mp::MaterialScalarAnisotropyArray[mat].K<<std::endl;
+            }
+        }
+        std::cout<<"***************************************************"<<std::endl;
+    }
+    //exit(1);
 
 	#endif
 

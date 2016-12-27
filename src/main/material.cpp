@@ -92,7 +92,7 @@ materials_t::materials_t ():
 		Jij_matrix_SI[i]=0.0;
 		Jij_matrix[i]=0.0;
 		intermixing[i]=0.0;
-		alloy[i]=0.0;
+        alloy[i]=0.0;
 	}
 	initial_spin[0]=0.0;
 	initial_spin[1]=0.0;

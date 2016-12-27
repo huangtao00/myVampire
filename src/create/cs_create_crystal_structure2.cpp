@@ -70,7 +70,7 @@ int create_crystal_structure(std::vector<cs::catom_t> & catom_array){
 	#else
 		min_bounds[0]=0;
 		min_bounds[1]=0;
-		min_bounds[2]=0;
+        min_bounds[2]=0;
 		max_bounds[0]=cs::total_num_unit_cells[0];
 		max_bounds[1]=cs::total_num_unit_cells[1];
 		max_bounds[2]=cs::total_num_unit_cells[2];
@@ -90,8 +90,10 @@ int create_crystal_structure(std::vector<cs::catom_t> & catom_array){
 
    // find maximum height lh_category
    int maxlh=0;
-   for(int uca=0;uca<unit_cell.atom.size();uca++) if(unit_cell.atom[uca].hc > maxlh) maxlh = unit_cell.atom[uca].hc;
+   for(int uca=0;uca<unit_cell.atom.size();uca++)
+       if(unit_cell.atom[uca].hc > maxlh) maxlh = unit_cell.atom[uca].hc;
    maxlh+=1;
+
 
    const double cff = 1.e-9; // Small numerical correction for atoms exactly on the borderline between processors
 
@@ -120,9 +122,14 @@ int create_crystal_structure(std::vector<cs::catom_t> & catom_array){
 							catom_array[atom].z=cz;
 							//std::cout << atom << "\t" << cx << "\t" << cy <<"\t" << cz << std::endl;
 							catom_array[atom].material=unit_cell.atom[uca].mat;
+                           // std::cout<<"mat="<<unit_cell.atom[uca].mat<<std::endl;
 							catom_array[atom].uc_id=uca;
 							catom_array[atom].lh_category=unit_cell.atom[uca].hc+z*maxlh;
 							catom_array[atom].uc_category=unit_cell.atom[uca].lc;
+                            using std::cout;
+                            using std::endl;
+                            //cout<<"uca="<<uca<<endl;
+                            //cout<<"lc="<<unit_cell.atom[uca].lc<<endl;
 							catom_array[atom].scx=x;
 							catom_array[atom].scy=y;
 							catom_array[atom].scz=z;
@@ -170,10 +177,12 @@ int create_crystal_structure(std::vector<cs::catom_t> & catom_array){
 	if(cs::SelectMaterialByZHeight==true){
 		
 		// Check for interfacial roughness and call custom material assignment routine
-		if(cs::interfacial_roughness==true) cs::roughness(catom_array);
+                if(cs::interfacial_roughness==true)
+                    cs::roughness(catom_array);
 		
-      // Check for multilayer system and if required generate multilayers
-      else if(cs::multilayers) cs::generate_multilayers(catom_array);
+                // Check for multilayer system and if required generate multilayers
+                else if(cs::multilayers)
+                    cs::generate_multilayers(catom_array);
 
 		// Otherwise perform normal assignement of materials
 		else{
@@ -181,15 +190,15 @@ int create_crystal_structure(std::vector<cs::catom_t> & catom_array){
 			// determine z-bounds for materials
 			std::vector<double> mat_min(mp::num_materials);
 			std::vector<double> mat_max(mp::num_materials);
-         std::vector<bool> mat_fill(mp::num_materials);
+            std::vector<bool> mat_fill(mp::num_materials);
 
-         // Unroll min, max and fill for performance
+                        // Unroll min, max and fill for performance
 			for(int mat=0;mat<mp::num_materials;mat++){
 				mat_min[mat]=mp::material[mat].min*cs::system_dimensions[2];
 				mat_max[mat]=mp::material[mat].max*cs::system_dimensions[2];
 				// alloys generally are not defined by height, and so have max = 0.0
 				if(mat_max[mat]<0.0000001) mat_max[mat]=-0.1;
-            mat_fill[mat]=mp::material[mat].fill;
+                                mat_fill[mat]=mp::material[mat].fill;
 			}
 
 			// Assign materials to generated atoms
@@ -202,10 +211,10 @@ int create_crystal_structure(std::vector<cs::catom_t> & catom_array){
 					}
 				}
 			}
-		}
+                    }
 
 		// Delete unneeded atoms
-		clear_atoms(catom_array);
+                clear_atoms(catom_array);
 	}
 	
 	// Check to see if any atoms have been generated
@@ -258,8 +267,9 @@ void verify_exchange_interactions(unit_cell_t & unit_cell, std::string filename)
             break;
          }
       }
+      match=true;
 
-      // if no match is found add to list of assymetric interactions
+      // if no match is found ,add to list of assymetric interactions
       if(!match){
          asym_interaction_list.push_back(i);
       }
@@ -353,7 +363,7 @@ void read_unit_cell(unit_cell_t & unit_cell, std::string filename){
 				
 		// non-comment line found - check for line number
 		switch(line_id){
-			case 0:
+            case 0:
 				iss >> unit_cell.dimensions[0] >> unit_cell.dimensions[1] >> unit_cell.dimensions[2];
 				break;
 			case 1:
@@ -539,6 +549,7 @@ void read_unit_cell(unit_cell_t & unit_cell, std::string filename){
 	return;
 }
 
+//unit_cell的信息可以直接写的ucf文件中，没有文件时，才会读下面的值  读ucf函数在上
 void unit_cell_set(unit_cell_t & unit_cell){
 
 	// check calling of routine if error checking is activated
@@ -556,7 +567,7 @@ void unit_cell_set(unit_cell_t & unit_cell){
 	unit_cell.dimensions[1]=cs::unit_cell_size[1];
 	unit_cell.dimensions[2]=cs::unit_cell_size[2];
 	
-	unit_cell.exchange_type=-1;
+    unit_cell.exchange_type=0;  //tensor for anisotropy exchange interaction
 	
 	unit_cell.shape[0][0]=1.0;
 	unit_cell.shape[0][1]=0.0;
@@ -574,7 +585,7 @@ void unit_cell_set(unit_cell_t & unit_cell){
 		if(cs::crystal_structure=="sc"){
 			unit_cell.lcsize=1;
 			unit_cell.hcsize=1;
-			unit_cell.interaction_range=1;
+            unit_cell.interaction_range=1;
 			unit_cell.atom.resize(1);
 			unit_cell.surface_threshold=6;
 			//-----------------------------
@@ -583,9 +594,9 @@ void unit_cell_set(unit_cell_t & unit_cell){
 			unit_cell.atom[0].z=0.0;
 			unit_cell.atom[0].lc=0;
 			unit_cell.atom[0].hc=0;
-			unit_cell.atom[0].ni=6;
+            unit_cell.atom[0].ni=6;  //number of interactions
 			//-----------------------------
-			unit_cell.interaction.resize(6);
+            unit_cell.interaction.resize (6);
 			//-----------------------------
 			unit_cell.interaction[0].i=0;
 			unit_cell.interaction[0].j=0;
@@ -760,21 +771,23 @@ void unit_cell_set(unit_cell_t & unit_cell){
 			unit_cell.atom[1].x=0.5;
 			unit_cell.atom[1].y=0.5;
 			unit_cell.atom[1].z=0.0;
-			unit_cell.atom[1].lc=1;
+            unit_cell.atom[1].lc=1;
 			unit_cell.atom[1].hc=0;
 			unit_cell.atom[1].ni=12;
 			//-----------------------------
 			unit_cell.atom[2].x=0.5;
 			unit_cell.atom[2].y=0.0;
 			unit_cell.atom[2].z=0.5;
-			unit_cell.atom[2].lc=2;
+            unit_cell.atom[2].lc=2;
+
 			unit_cell.atom[2].hc=1;
 			unit_cell.atom[2].ni=12;
 			//-----------------------------
 			unit_cell.atom[3].x=0.0;
 			unit_cell.atom[3].y=0.5;
 			unit_cell.atom[3].z=0.5;
-			unit_cell.atom[3].lc=3;
+            unit_cell.atom[3].lc=3;
+
 			unit_cell.atom[3].hc=1;
 			unit_cell.atom[3].ni=12;
 			//-----------------------------
@@ -1070,7 +1083,337 @@ void unit_cell_set(unit_cell_t & unit_cell){
 			//----------------------------------------------
 
 		}
-      else if(cs::crystal_structure=="hcp"){
+        else if(cs::crystal_structure=="fcc-f10"){  //added by huangtao at 2015 11 3 am
+            unit_cell.lcsize=4;
+            unit_cell.hcsize=2;
+            unit_cell.interaction_range=1;
+            unit_cell.atom.resize(4);
+            unit_cell.surface_threshold=12;
+            //-----------------------------
+            unit_cell.atom[0].x=0.0;
+            unit_cell.atom[0].y=0.0;
+            unit_cell.atom[0].z=0.0;
+            unit_cell.atom[0].lc=0;
+            unit_cell.atom[0].hc=0;
+            unit_cell.atom[0].ni=12;
+            //-----------------------------
+            unit_cell.atom[1].x=0.5;
+            unit_cell.atom[1].y=0.5;
+            unit_cell.atom[1].z=0.0;
+            unit_cell.atom[1].lc=0;
+            //unit_cell.atom[1].lc=1;
+            unit_cell.atom[1].hc=0;
+            unit_cell.atom[1].ni=12;
+            //-----------------------------
+            unit_cell.atom[2].x=0.5;
+            unit_cell.atom[2].y=0.0;
+            unit_cell.atom[2].z=0.5;
+            //unit_cell.atom[2].lc=2;
+            unit_cell.atom[2].lc=1;
+            unit_cell.atom[2].hc=1;
+            unit_cell.atom[2].ni=12;
+            //-----------------------------
+            unit_cell.atom[3].x=0.0;
+            unit_cell.atom[3].y=0.5;
+            unit_cell.atom[3].z=0.5;
+            //unit_cell.atom[3].lc=3;
+            unit_cell.atom[3].lc=1;
+            unit_cell.atom[3].hc=1;
+            unit_cell.atom[3].ni=12;
+            //-----------------------------
+            unit_cell.interaction.resize(48);
+            //-----------------------------
+            unit_cell.interaction[0].i=0;
+            unit_cell.interaction[0].j=1;
+            unit_cell.interaction[0].dx=-1;
+            unit_cell.interaction[0].dy=-1;
+            unit_cell.interaction[0].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[1].i=0;
+            unit_cell.interaction[1].j=2;
+            unit_cell.interaction[1].dx=-1;
+            unit_cell.interaction[1].dy=0;
+            unit_cell.interaction[1].dz=-1;
+            //----------------------------------------------
+            unit_cell.interaction[2].i=0;
+            unit_cell.interaction[2].j=1;
+            unit_cell.interaction[2].dx=-1;
+            unit_cell.interaction[2].dy=0;
+            unit_cell.interaction[2].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[3].i=0;
+            unit_cell.interaction[3].j=2;
+            unit_cell.interaction[3].dx=-1;
+            unit_cell.interaction[3].dy=0;
+            unit_cell.interaction[3].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[4].i=0;
+            unit_cell.interaction[4].j=3;
+            unit_cell.interaction[4].dx=0;
+            unit_cell.interaction[4].dy=-1;
+            unit_cell.interaction[4].dz=-1;
+            //----------------------------------------------
+            unit_cell.interaction[5].i=0;
+            unit_cell.interaction[5].j=1;
+            unit_cell.interaction[5].dx=0;
+            unit_cell.interaction[5].dy=-1;
+            unit_cell.interaction[5].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[6].i=0;
+            unit_cell.interaction[6].j=3;
+            unit_cell.interaction[6].dx=0;
+            unit_cell.interaction[6].dy=-1;
+            unit_cell.interaction[6].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[7].i=0;
+            unit_cell.interaction[7].j=2;
+            unit_cell.interaction[7].dx=0;
+            unit_cell.interaction[7].dy=0;
+            unit_cell.interaction[7].dz=-1;
+            //----------------------------------------------
+            unit_cell.interaction[8].i=0;
+            unit_cell.interaction[8].j=3;
+            unit_cell.interaction[8].dx=0;
+            unit_cell.interaction[8].dy=0;
+            unit_cell.interaction[8].dz=-1;
+            //----------------------------------------------
+            unit_cell.interaction[9].i=0;
+            unit_cell.interaction[9].j=1;
+            unit_cell.interaction[9].dx=0;
+            unit_cell.interaction[9].dy=0;
+            unit_cell.interaction[9].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[10].i=0;
+            unit_cell.interaction[10].j=2;
+            unit_cell.interaction[10].dx=0;
+            unit_cell.interaction[10].dy=0;
+            unit_cell.interaction[10].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[11].i=0;
+            unit_cell.interaction[11].j=3;
+            unit_cell.interaction[11].dx=0;
+            unit_cell.interaction[11].dy=0;
+            unit_cell.interaction[11].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[12].i=1;
+            unit_cell.interaction[12].j=2;
+            unit_cell.interaction[12].dx=0;
+            unit_cell.interaction[12].dy=0;
+            unit_cell.interaction[12].dz=-1;
+            //----------------------------------------------
+            unit_cell.interaction[13].i=1;
+            unit_cell.interaction[13].j=3;
+            unit_cell.interaction[13].dx=0;
+            unit_cell.interaction[13].dy=0;
+            unit_cell.interaction[13].dz=-1;
+            //----------------------------------------------
+            unit_cell.interaction[14].i=1;
+            unit_cell.interaction[14].j=0;
+            unit_cell.interaction[14].dx=0;
+            unit_cell.interaction[14].dy=0;
+            unit_cell.interaction[14].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[15].i=1;
+            unit_cell.interaction[15].j=2;
+            unit_cell.interaction[15].dx=0;
+            unit_cell.interaction[15].dy=0;
+            unit_cell.interaction[15].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[16].i=1;
+            unit_cell.interaction[16].j=3;
+            unit_cell.interaction[16].dx=0;
+            unit_cell.interaction[16].dy=0;
+            unit_cell.interaction[16].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[17].i=1;
+            unit_cell.interaction[17].j=2;
+            unit_cell.interaction[17].dx=0;
+            unit_cell.interaction[17].dy=1;
+            unit_cell.interaction[17].dz=-1;
+            //----------------------------------------------
+            unit_cell.interaction[18].i=1;
+            unit_cell.interaction[18].j=0;
+            unit_cell.interaction[18].dx=0;
+            unit_cell.interaction[18].dy=1;
+            unit_cell.interaction[18].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[19].i=1;
+            unit_cell.interaction[19].j=2;
+            unit_cell.interaction[19].dx=0;
+            unit_cell.interaction[19].dy=1;
+            unit_cell.interaction[19].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[20].i=1;
+            unit_cell.interaction[20].j=3;
+            unit_cell.interaction[20].dx=1;
+            unit_cell.interaction[20].dy=0;
+            unit_cell.interaction[20].dz=-1;
+            //----------------------------------------------
+            unit_cell.interaction[21].i=1;
+            unit_cell.interaction[21].j=0;
+            unit_cell.interaction[21].dx=1;
+            unit_cell.interaction[21].dy=0;
+            unit_cell.interaction[21].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[22].i=1;
+            unit_cell.interaction[22].j=3;
+            unit_cell.interaction[22].dx=1;
+            unit_cell.interaction[22].dy=0;
+            unit_cell.interaction[22].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[23].i=1;
+            unit_cell.interaction[23].j=0;
+            unit_cell.interaction[23].dx=1;
+            unit_cell.interaction[23].dy=1;
+            unit_cell.interaction[23].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[24].i=2;
+            unit_cell.interaction[24].j=1;
+            unit_cell.interaction[24].dx=0;
+            unit_cell.interaction[24].dy=-1;
+            unit_cell.interaction[24].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[25].i=2;
+            unit_cell.interaction[25].j=3;
+            unit_cell.interaction[25].dx=0;
+            unit_cell.interaction[25].dy=-1;
+            unit_cell.interaction[25].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[26].i=2;
+            unit_cell.interaction[26].j=1;
+            unit_cell.interaction[26].dx=0;
+            unit_cell.interaction[26].dy=-1;
+            unit_cell.interaction[26].dz=1;
+            //----------------------------------------------
+            unit_cell.interaction[27].i=2;
+            unit_cell.interaction[27].j=0;
+            unit_cell.interaction[27].dx=0;
+            unit_cell.interaction[27].dy=0;
+            unit_cell.interaction[27].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[28].i=2;
+            unit_cell.interaction[28].j=1;
+            unit_cell.interaction[28].dx=0;
+            unit_cell.interaction[28].dy=0;
+            unit_cell.interaction[28].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[29].i=2;
+            unit_cell.interaction[29].j=3;
+            unit_cell.interaction[29].dx=0;
+            unit_cell.interaction[29].dy=0;
+            unit_cell.interaction[29].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[30].i=2;
+            unit_cell.interaction[30].j=0;
+            unit_cell.interaction[30].dx=0;
+            unit_cell.interaction[30].dy=0;
+            unit_cell.interaction[30].dz=1;
+            //----------------------------------------------
+            unit_cell.interaction[31].i=2;
+            unit_cell.interaction[31].j=1;
+            unit_cell.interaction[31].dx=0;
+            unit_cell.interaction[31].dy=0;
+            unit_cell.interaction[31].dz=1;
+            //----------------------------------------------
+            unit_cell.interaction[32].i=2;
+            unit_cell.interaction[32].j=3;
+            unit_cell.interaction[32].dx=1;
+            unit_cell.interaction[32].dy=-1;
+            unit_cell.interaction[32].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[33].i=2;
+            unit_cell.interaction[33].j=0;
+            unit_cell.interaction[33].dx=1;
+            unit_cell.interaction[33].dy=0;
+            unit_cell.interaction[33].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[34].i=2;
+            unit_cell.interaction[34].j=3;
+            unit_cell.interaction[34].dx=1;
+            unit_cell.interaction[34].dy=0;
+            unit_cell.interaction[34].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[35].i=2;
+            unit_cell.interaction[35].j=0;
+            unit_cell.interaction[35].dx=1;
+            unit_cell.interaction[35].dy=0;
+            unit_cell.interaction[35].dz=1;
+            //----------------------------------------------
+            unit_cell.interaction[36].i=3;
+            unit_cell.interaction[36].j=1;
+            unit_cell.interaction[36].dx=-1;
+            unit_cell.interaction[36].dy=0;
+            unit_cell.interaction[36].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[37].i=3;
+            unit_cell.interaction[37].j=2;
+            unit_cell.interaction[37].dx=-1;
+            unit_cell.interaction[37].dy=0;
+            unit_cell.interaction[37].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[38].i=3;
+            unit_cell.interaction[38].j=1;
+            unit_cell.interaction[38].dx=-1;
+            unit_cell.interaction[38].dy=0;
+            unit_cell.interaction[38].dz=1;
+            //----------------------------------------------
+            unit_cell.interaction[39].i=3;
+            unit_cell.interaction[39].j=2;
+            unit_cell.interaction[39].dx=-1;
+            unit_cell.interaction[39].dy=1;
+            unit_cell.interaction[39].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[40].i=3;
+            unit_cell.interaction[40].j=0;
+            unit_cell.interaction[40].dx=0;
+            unit_cell.interaction[40].dy=0;
+            unit_cell.interaction[40].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[41].i=3;
+            unit_cell.interaction[41].j=1;
+            unit_cell.interaction[41].dx=0;
+            unit_cell.interaction[41].dy=0;
+            unit_cell.interaction[41].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[42].i=3;
+            unit_cell.interaction[42].j=2;
+            unit_cell.interaction[42].dx=0;
+            unit_cell.interaction[42].dy=0;
+            unit_cell.interaction[42].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[43].i=3;
+            unit_cell.interaction[43].j=0;
+            unit_cell.interaction[43].dx=0;
+            unit_cell.interaction[43].dy=0;
+            unit_cell.interaction[43].dz=1;
+            //----------------------------------------------
+            unit_cell.interaction[44].i=3;
+            unit_cell.interaction[44].j=1;
+            unit_cell.interaction[44].dx=0;
+            unit_cell.interaction[44].dy=0;
+            unit_cell.interaction[44].dz=1;
+            //----------------------------------------------
+            unit_cell.interaction[45].i=3;
+            unit_cell.interaction[45].j=0;
+            unit_cell.interaction[45].dx=0;
+            unit_cell.interaction[45].dy=1;
+            unit_cell.interaction[45].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[46].i=3;
+            unit_cell.interaction[46].j=2;
+            unit_cell.interaction[46].dx=0;
+            unit_cell.interaction[46].dy=1;
+            unit_cell.interaction[46].dz=0;
+            //----------------------------------------------
+            unit_cell.interaction[47].i=3;
+            unit_cell.interaction[47].j=0;
+            unit_cell.interaction[47].dx=0;
+            unit_cell.interaction[47].dy=1;
+            unit_cell.interaction[47].dz=1;
+            //----------------------------------------------
+
+        }
+        else if(cs::crystal_structure=="hcp"){
          // rescale y and z unit cell size to preserve unit cell dimensions
          unit_cell.dimensions[0]=unit_cell.dimensions[0];
          unit_cell.dimensions[1]=unit_cell.dimensions[1]/sqrt(3.0);
@@ -1409,7 +1752,7 @@ void unit_cell_set(unit_cell_t & unit_cell){
 			err::vexit();
 		}
 
-	}
+    } //end of fucntion
 
 } // end of namespace cs
 

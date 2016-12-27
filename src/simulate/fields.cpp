@@ -56,11 +56,15 @@ void calculate_sixth_order_uniaxial_anisotropy_fields(const int,const int);
 void calculate_spherical_harmonic_fields(const int,const int);
 void calculate_lattice_anisotropy_fields(const int, const int);
 int calculate_cubic_anisotropy_fields(const int,const int);
+
+
 int calculate_applied_fields(const int,const int);
 int calculate_thermal_fields(const int,const int);
 int calculate_dipolar_fields(const int,const int);
 void calculate_hamr_fields(const int,const int);
 void calculate_fmr_fields(const int,const int);
+
+
 void calculate_surface_anisotropy_fields(const int,const int);
 void calculate_lagrange_fields(const int,const int);
 
@@ -79,13 +83,19 @@ int calculate_spin_fields(const int start_index,const int end_index){
 	fill (atoms::y_total_spin_field_array.begin()+start_index,atoms::y_total_spin_field_array.begin()+end_index,0.0);
 	fill (atoms::z_total_spin_field_array.begin()+start_index,atoms::z_total_spin_field_array.begin()+end_index,0.0);
 
+
+
 	// Exchange Fields
 	if(sim::hamiltonian_simulation_flags[0]==1) calculate_exchange_fields(start_index,end_index);
 	
+
+
 	// Anisotropy Fields
 	if(sim::UniaxialScalarAnisotropy || sim::TensorAnisotropy) calculate_anisotropy_fields(start_index,end_index);
    if(sim::second_order_uniaxial_anisotropy) calculate_second_order_uniaxial_anisotropy_fields(start_index,end_index);
+
    if(sim::sixth_order_uniaxial_anisotropy) calculate_sixth_order_uniaxial_anisotropy_fields(start_index,end_index);
+
    if(sim::spherical_harmonics) calculate_spherical_harmonic_fields(start_index,end_index);
    if(sim::lattice_anisotropy_flag) calculate_lattice_anisotropy_fields(start_index,end_index);
    if(sim::CubicScalarAnisotropy) calculate_cubic_anisotropy_fields(start_index,end_index);
@@ -116,10 +126,14 @@ int calculate_external_fields(const int start_index,const int end_index){
 	fill (atoms::y_total_external_field_array.begin()+start_index,atoms::y_total_external_field_array.begin()+end_index,0.0);
 	fill (atoms::z_total_external_field_array.begin()+start_index,atoms::z_total_external_field_array.begin()+end_index,0.0);
 	
-	if(sim::program==7) calculate_hamr_fields(start_index,end_index);
-   else if(sim::program==13){
+    /******************** do some study about these functions***************************************************/
+    if(sim::program==7)
+        calculate_hamr_fields(start_index,end_index);
+   else if(sim::program==13)
 
-      // Local thermal Fields
+    {
+
+      // Local thermal Fields     localised temperature pulse
       ltmp::get_localised_thermal_fields(atoms::x_total_external_field_array,atoms::y_total_external_field_array,
                                          atoms::z_total_external_field_array, start_index, end_index);
 
@@ -127,7 +141,8 @@ int calculate_external_fields(const int start_index,const int end_index){
       if(sim::hamiltonian_simulation_flags[2]==1) calculate_applied_fields(start_index,end_index);
 
    }
-	else{
+    else
+    {
 	
 		// Thermal Fields
 		if(sim::hamiltonian_simulation_flags[3]==1) calculate_thermal_fields(start_index,end_index);
@@ -136,7 +151,7 @@ int calculate_external_fields(const int start_index,const int end_index){
 		if(sim::hamiltonian_simulation_flags[2]==1) calculate_applied_fields(start_index,end_index);
 
 	}
-	
+    /**********************************************************************************************************/
 	// FMR Fields
 	if(sim::hamiltonian_simulation_flags[5]==1) calculate_fmr_fields(start_index,end_index);
 
@@ -153,10 +168,18 @@ int calculate_exchange_fields(const int start_index,const int end_index){
 	///			Version 2.0 Richard Evans 08/09/2011
 	///======================================================
 
+    static int flag=0;
 	// check calling of routine if error checking is activated
 	if(err::check==true){std::cout << "calculate_exchange_fields has been called" << std::endl;}
+    if (flag==0)
+    {
+        std::cout<<"the type of exchage interaction is(0 isotropic;1 vector;2 tensor) "<<atoms::exchange_type<<std::endl;
+        flag+=1;
+    }
 
 	// Use appropriate function for exchange calculation
+
+
 	switch(atoms::exchange_type){
 		case 0: // isotropic
 			for(int atom=start_index;atom<end_index;atom++){
@@ -165,6 +188,11 @@ int calculate_exchange_fields(const int start_index,const int end_index){
 				register double Hz=0.0;
 				const int start=atoms::neighbour_list_start_index[atom];
 				const int end=atoms::neighbour_list_end_index[atom]+1;
+                if(end-start>1000)
+                {
+
+                    std::cout<<"for atom "<<atom<<" we get "<<end-start<<" interactions"<<std::endl;
+                }
 				for(int nn=start;nn<end;nn++){
 					const int natom = atoms::neighbour_list_array[nn];
 					const double Jij=atoms::i_exchange_list[atoms::neighbour_interaction_type_array[nn]].Jij;
@@ -207,6 +235,8 @@ int calculate_exchange_fields(const int start_index,const int end_index){
 				register double Hz=0.0;
 				const int start=atoms::neighbour_list_start_index[atom];
 				const int end=atoms::neighbour_list_end_index[atom]+1;
+
+                //std::cout<<"number of interactions per atom:"<<end-start<<std::endl;
 				for(int nn=start;nn<end;nn++){
 					const int natom = atoms::neighbour_list_array[nn];
 					const int iid = atoms::neighbour_interaction_type_array[nn]; // interaction id
@@ -249,14 +279,16 @@ int calculate_anisotropy_fields(const int start_index,const int end_index){
 	if(err::check==true){std::cout << "calculate_anisotropy_fields has been called" << std::endl;}
 
 		// Use appropriate function for anisotropy calculation
+
 	switch(sim::AnisotropyType){
-		case 0: // scalar
+        case 0: // scalar //，单轴
+    //std::cout<<"uniaxial anisotropy"<<mp::MaterialScalarAnisotropyArray[0].K<<std::endl;
 			for(int atom=start_index;atom<end_index;atom++){
 				const int imaterial=atoms::type_array[atom];
 				atoms::z_total_spin_field_array[atom] -= 2.0*mp::MaterialScalarAnisotropyArray[imaterial].K*atoms::z_spin_array[atom];
 			}
 			break;
-		case 1: // tensor
+        case 1: // tensor 多轴
 			for(int atom=start_index;atom<end_index;atom++){
 				const int imaterial=atoms::type_array[atom];
 
@@ -464,10 +496,10 @@ int calculate_cubic_anisotropy_fields(const int start_index,const int end_index)
 	///
 	///			Version 1.0 R Evans 28/07/2012
 	///
-	///		E = -0.5 Kc (Sx^4 + Sy^4 + Sz^4)
-	///		Hx = +2 Kc*(Sx^3)
-	///		Hy = +2 Kc*(Sy^3)
-	///		Hz = +2 Kc*(Sz^3)
+    ///		E = 0.5 Kc (Sx^4 + Sy^4 + Sz^4)
+    ///		Hx = -2 Kc*(Sx^3)  //why plus
+    ///		Hy = -2 Kc*(Sy^3)
+    ///		Hz = -2 Kc*(Sz^3)
 	///	
 	///------------------------------------------------------
 	//std::cout << "here" << std::endl;
@@ -539,7 +571,8 @@ int calculate_applied_fields(const int start_index,const int end_index){
 	std::vector<double> Hlocal(0);
 
 	// Check for local applied field
-	if(sim::local_applied_field==true){
+    if(sim::local_applied_field==true)
+    {
 		Hlocal.reserve(3*mp::material.size());
 		
 		// Loop over all materials
@@ -557,7 +590,8 @@ int calculate_applied_fields(const int start_index,const int end_index){
 			atoms::z_total_external_field_array[atom] += Hz + Hlocal[3*imaterial + 2];
 		}
 	}
-	else{
+    else
+    {
 		// Calculate global field
 		for(int atom=start_index;atom<end_index;atom++){
 			atoms::x_total_external_field_array[atom] += Hx;
@@ -610,6 +644,8 @@ int calculate_thermal_fields(const int start_index,const int end_index){
       double temperature = sim::temperature;
       // Check for localised temperature
       if(sim::local_temperature) temperature = mp::material[mat].temperature;
+
+
       // Calculate temperature rescaling
       double alpha = mp::material[mat].temperature_rescaling_alpha;
       double Tc = mp::material[mat].temperature_rescaling_Tc;
@@ -717,6 +753,7 @@ void calculate_hamr_fields(const int start_index,const int end_index){
 			atoms::z_total_external_field_array[atom] += Hz;
 		}
 	}
+
 	else{
 		// Otherwise just use global temperature
 		double sqrt_T=sqrt(sim::temperature);
@@ -743,11 +780,13 @@ void calculate_fmr_fields(const int start_index,const int end_index){
 	const double Hfmrz=0.0;
 	const double Hfmr=0.0; // 0.001 T
 	const double Hsinwt=Hfmr*sin(2.0*M_PI*real_time/osc_period);
+
 	const double Hx=Hfmrx*Hsinwt; 
 	const double Hy=Hfmry*Hsinwt;
 	const double Hz=Hfmrz*Hsinwt;
 
-	if(sim::local_fmr_field==true){
+    if(sim::local_fmr_field==true)
+    {
 
 		std::vector<double> H_fmr_local;
 		H_fmr_local.reserve(3*mp::material.size());

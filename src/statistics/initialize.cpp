@@ -24,7 +24,7 @@ namespace stats{
       //--------------------------------------------------------------
       // Set up statistics masks for different data sets
       //--------------------------------------------------------------
-      stats::num_atoms = num_atoms;
+      stats::num_atoms = num_atoms;//the maximum is 2.1 billion
 
       // define vector mask
       std::vector<int> mask(stats::num_atoms,0);

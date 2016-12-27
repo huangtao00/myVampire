@@ -89,6 +89,8 @@ int cylinder(double particle_origin[],std::vector<cs::catom_t> & catom_array, co
 	// Set particle radius
 	//-----------------------------------------
 	double particle_radius_squared = (cs::particle_scale*0.5)*(cs::particle_scale*0.5);
+    //std::cout<<"particle scale"<<cs::particle_scale<<std::endl;
+    // particle_scale  is equal to the value of particle-size
 	
 	//-----------------------------------------------
 	// Loop over all atoms and mark atoms in sphere

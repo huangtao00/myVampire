@@ -33,6 +33,7 @@
 #include "vmpi.hpp"
 #include "vio.hpp"
 
+#include "random.hpp"
 int simulate_system();
 
 /// Main function for vampire
@@ -98,10 +99,13 @@ int main(int argc, char* argv[]){
       std::cout << "                Thomas Ostler, Andreas Biternas, Roy W Chantrell," << std::endl;
       std::cout << "                Wu Hong-Ye, Rory Pond" << std::endl;
       std::cout << " " << std::endl;
+
       #ifdef COMP
       std::cout << "                Compiled with:  " << COMP << std::endl;
       #endif
+
       std::cout << "                Compiler Flags: ";
+
       #ifdef CUDA
       std::cout << "CUDA ";
       #endif
@@ -117,7 +121,7 @@ int main(int argc, char* argv[]){
       time_t rawtime = time(NULL);
       struct tm * timeinfo = localtime(&rawtime);
       std::cout<<asctime(timeinfo);
-   }
+   }//end of my_rank=0
 
 
    #ifdef MPICF
@@ -131,6 +135,9 @@ int main(int argc, char* argv[]){
       }
    #endif
 
+
+//需要重点研究的三个函数:初始化系统，创建系统，开始仿真
+/*************************************/
    // Initialise system
    mp::initialise(infile);
 
@@ -138,8 +145,13 @@ int main(int argc, char* argv[]){
    cs::create();
 
    // Simulate system
-   sim::run();
 
+   sim::run();
+/*************************************/
+   /* //test the gaussian function
+   for (int i=0;i<1000;i++)
+  std::cout<< mtrandom::gaussian()<<std::endl;
+  */
    // Finalise MPI
    #ifdef MPICF
       vmpi::finalise();
@@ -152,6 +164,7 @@ int main(int argc, char* argv[]){
    #endif
 
    zlog << zTs() << "Simulation ended gracefully." << std::endl;
+
    terminaltextcolor(GREEN);
    std::cout << "Simulation ended gracefully." << std::endl;
    terminaltextcolor(WHITE);
