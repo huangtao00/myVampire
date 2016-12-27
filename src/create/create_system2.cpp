@@ -330,7 +330,7 @@ int create(){
     zlog << zTs() << "Number of atoms generated: " << atoms::num_atoms << std::endl;
 
     //rescaling the volume of the particle
-    if( cs::system_creation_flags[2]==0 and cs::system_creation_flags[1]==2) // means create a single magnetic partilce and the shape of the particle is cyliner
+    if( cs::system_creation_flags[2]==0 and cs::system_creation_flags[1]==2) // this means create a single magnetic partilce and the shape of the particle is cyliner, coercivity changes with size
     {
         std::cout<<"***************************************************"<<std::endl;
         std::cout<<"calculate the volume of a single particle "<<std::endl;
